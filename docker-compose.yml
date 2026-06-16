@@ -1,0 +1,53 @@
+services:
+  data-statistics:
+    build:
+      context: ./server
+      dockerfile: src/DataStatisticsService.Host/Dockerfile
+    container_name: data-statistics
+    ports:
+      - "5100:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__StatisticsDb=Host=statistics-postgres;Port=5432;Database=datastatistics;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=user
+      - RabbitMQ__Password=password
+      - RabbitMQ__ExchangeName=weak-app
+      - RabbitMQ__QueueName=ingested-data-processing-queue
+      - RabbitMQ__QueueKey=ingested-data.message
+    depends_on:
+      statistics-postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  statistics-postgres:
+    image: postgres:17-alpine
+    container_name: statistics-postgres
+    environment:
+      - POSTGRES_DB=datastatistics
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - statistics_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d datastatistics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    external: true
+
+volumes:
+  statistics_postgres_data:
