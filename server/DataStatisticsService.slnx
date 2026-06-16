@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DataStatisticsService.Abstractions/DataStatisticsService.Abstractions.csproj" />
+    <Project Path="src/DataStatisticsService.Application/DataStatisticsService.Application.csproj" />
+    <Project Path="src/DataStatisticsService.Data/DataStatisticsService.Data.csproj" />
+    <Project Path="src/DataStatisticsService.Host/DataStatisticsService.Host.csproj" />
+    <Project Path="src/DataStatisticsService.Service/DataStatisticsService.Service.csproj" />
+    <Project Path="src/DataStatisticsService.Shared/DataStatisticsService.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DataStatisticsService.Application.Tests/DataStatisticsService.Application.Tests.csproj" />
+    <Project Path="tests/DataStatisticsService.Data.Tests/DataStatisticsService.Data.Tests.csproj" />
+    <Project Path="tests/DataStatisticsService.Host.Tests/DataStatisticsService.Host.Tests.csproj" />
+    <Project Path="tests/DataStatisticsService.Service.Tests/DataStatisticsService.Service.Tests.csproj" />
+  </Folder>
+</Solution>
