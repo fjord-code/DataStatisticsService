@@ -1,0 +1,41 @@
+---
+description: Standards for building the DataStatistics microservices platform
+alwaysApply: true
+---
+
+# DataStatistics Architecture Rule
+
+Use this stack and structure for all new work in this repository:
+- Backend: latest .NET ASP.NET Web API, Ocelot gateway, GraphQL for FE access.
+- Messaging: RabbitMQ is mandatory for inter-service data flow.
+- Frontend: Angular + GraphQL client; real-time updates via SignalR/WebSockets.
+- Persistence: relational or document DB with migration scripts and seeded local setup.
+
+# Onion Layering (mandatory)
+
+Every backend service follows: `Data -> Service -> Application -> Abstractions + Shared`.
+- `Data`: EF Core/repositories/external providers only, no business orchestration.
+- `Service`: domain and orchestration logic, queue/event handlers, validation coordination.
+- `Application`: HTTP/GraphQL endpoints, DTO mapping, request/response contracts.
+- `Abstractions`: interfaces and contracts for cross-layer dependencies.
+- `Shared`: shared primitives, result/error models, logging/telemetry helpers.
+
+# Service Responsibilities
+
+- Data Ingestor: poll WeakApp with resilient retries/backoff, publish normalized messages to RabbitMQ.
+- Data Processor: consume queue messages idempotently, persist raw + aggregated data.
+- Gateway API: expose FE-focused REST + GraphQL endpoints with filtering/pagination/aggregations.
+- Notification service: publish live updates to clients through SignalR/WebSockets.
+
+# Engineering Guardrails
+
+- Add structured logging and explicit error handling in every boundary (API, queue, DB, external API).
+- Add unit tests for logic and integration tests for queue + DB + API paths.
+- Every service and FE must include CI workflow: lint, test, build, Docker image build.
+- Keep PRs small and reviewable; use feature branches and PR-only merges.
+
+# Definition of Done (for each feature)
+
+- Works in local `docker-compose` with WeakApp + RabbitMQ + DB + all services + frontend.
+- GraphQL schema is strongly typed and supports filtering, pagination, and aggregations.
+- UI shows latest data, charts, location/type aggregations, loading/error states, and live updates.
