@@ -2,11 +2,33 @@ using System.Text.Json;
 using DataStatisticsService.Abstractions.Messaging;
 using DataStatisticsService.Abstractions.Services;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using Wolverine;
+using Wolverine.ErrorHandling;
+using Wolverine.Runtime.Handlers;
 
 namespace DataStatisticsService.Application.Messaging;
 
 public sealed class IngestedDataMessageHandler(ILogger<IngestedDataMessageHandler> logger)
 {
+    public static void Configure(HandlerChain chain)
+    {
+        chain.OnException<InvalidOperationException>()
+            .MoveToErrorQueue();
+
+        chain.OnException<NpgsqlException>()
+            .Requeue(3)
+            .Then.MoveToErrorQueue();
+
+        chain.OnException<TimeoutException>()
+            .Requeue(3)
+            .Then.MoveToErrorQueue();
+
+        chain.OnException<Exception>()
+            .Requeue(3)
+            .Then.MoveToErrorQueue();
+    }
+
     public async Task Handle(IngestedDataMessage message, IIngestedDataIngestionService ingestionService, CancellationToken cancellationToken)
     {
         ValidateMessage(message);
