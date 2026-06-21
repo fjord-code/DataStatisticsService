@@ -36,7 +36,13 @@ Consumes ingested data from RabbitMQ, persists and aggregates readings, and expo
 
 ## Environment
 
-Copy `.env` defaults or adjust ports/credentials:
+Copy the example env file before first run:
+
+```bash
+cp .env.example .env
+```
+
+Adjust ports/credentials in `.env` if needed:
 
 | Variable | Description |
 |----------|-------------|

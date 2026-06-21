@@ -2,7 +2,8 @@ namespace DataStatisticsService.Abstractions.Persistence;
 
 public interface IRawIngestedEventRepository
 {
-    Task AddAsync(
+    /// <returns><c>true</c> if a new row was inserted; <c>false</c> if the event id already existed.</returns>
+    Task<bool> AddAsync(
         Guid eventId,
         string type,
         string name,

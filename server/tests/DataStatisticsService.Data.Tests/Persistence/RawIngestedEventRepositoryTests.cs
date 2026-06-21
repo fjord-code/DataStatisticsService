@@ -32,12 +32,14 @@ public sealed class RawIngestedEventRepositoryTests : IAsyncLifetime
         var repository = new RawIngestedEventRepository(context, NullLogger<RawIngestedEventRepository>.Instance);
         var eventId = Guid.NewGuid();
 
-        await repository.AddAsync(
+        var inserted = await repository.AddAsync(
             eventId,
             "temperature",
             "sensor-1",
             """{"value":42}""",
             DateTime.UtcNow);
+
+        Assert.True(inserted);
 
         var persisted = await context.RawIngestedEvents.SingleOrDefaultAsync(e => e.EventId == eventId);
 
@@ -54,19 +56,22 @@ public sealed class RawIngestedEventRepositoryTests : IAsyncLifetime
         var repository = new RawIngestedEventRepository(context, NullLogger<RawIngestedEventRepository>.Instance);
         var eventId = Guid.NewGuid();
 
-        await repository.AddAsync(
+        var firstInsert = await repository.AddAsync(
             eventId,
             "temperature",
             "sensor-1",
             """{"value":1}""",
             DateTime.UtcNow);
 
-        await repository.AddAsync(
+        var duplicateInsert = await repository.AddAsync(
             eventId,
             "temperature",
             "sensor-1",
             """{"value":2}""",
             DateTime.UtcNow);
+
+        Assert.True(firstInsert);
+        Assert.False(duplicateInsert);
 
         Assert.Equal(1, await context.RawIngestedEvents.CountAsync(e => e.EventId == eventId));
 

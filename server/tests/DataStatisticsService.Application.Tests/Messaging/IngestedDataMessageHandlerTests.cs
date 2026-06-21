@@ -27,6 +27,21 @@ public sealed class IngestedDataMessageHandlerTests
         Assert.Equal(1, updatePublisher.PublishCallCount);
     }
 
+    [Fact]
+    public async Task Handle_DuplicatePersist_SkipsAggregateAndPublish()
+    {
+        var ingestionService = new FakeIngestionService(inserted: false);
+        var aggregationService = new FakeAggregationService();
+        var updatePublisher = new FakeUpdatePublisher();
+        var message = CreateValidMessage();
+
+        await _handler.Handle(message, ingestionService, aggregationService, updatePublisher, CancellationToken.None);
+
+        Assert.Equal(1, ingestionService.PersistCallCount);
+        Assert.Equal(0, aggregationService.AggregateCallCount);
+        Assert.Equal(0, updatePublisher.PublishCallCount);
+    }
+
     [Theory]
     [InlineData("00000000-0000-0000-0000-000000000000", "type", "name", "{}", "non-empty EventId")]
     [InlineData("11111111-1111-1111-1111-111111111111", "", "name", "{}", "non-empty Type")]
@@ -108,17 +123,17 @@ public sealed class IngestedDataMessageHandlerTests
             Payload = JsonDocument.Parse("""{"value":42}""").RootElement
         };
 
-    private sealed class FakeIngestionService : IIngestedDataIngestionService
+    private sealed class FakeIngestionService(bool inserted = true) : IIngestedDataIngestionService
     {
         public int PersistCallCount { get; private set; }
 
         public IngestedDataMessage? LastMessage { get; private set; }
 
-        public Task PersistAsync(IngestedDataMessage message, CancellationToken cancellationToken = default)
+        public Task<bool> PersistAsync(IngestedDataMessage message, CancellationToken cancellationToken = default)
         {
             PersistCallCount++;
             LastMessage = message;
-            return Task.CompletedTask;
+            return Task.FromResult(inserted);
         }
     }
 

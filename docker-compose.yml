@@ -40,6 +40,8 @@ services:
     depends_on:
       statistics-postgres:
         condition: service_healthy
+      data-statistics:
+        condition: service_started
     networks:
       - app-network
     restart: unless-stopped

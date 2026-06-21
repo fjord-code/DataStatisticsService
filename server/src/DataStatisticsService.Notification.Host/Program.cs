@@ -2,7 +2,6 @@ using DataStatisticsService.Abstractions.Messaging;
 using DataStatisticsService.Data.Configuration;
 using DataStatisticsService.Notification.Host.Hubs;
 using DataStatisticsService.Notification.Host.Messaging;
-using DataStatisticsService.Notification.Host.Messaging;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using Wolverine;

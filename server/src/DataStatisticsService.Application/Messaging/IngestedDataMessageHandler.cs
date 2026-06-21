@@ -41,7 +41,14 @@ public sealed class IngestedDataMessageHandler(ILogger<IngestedDataMessageHandle
             "Received ingested event {EventId} from RabbitMQ",
             message.EventId);
 
-        await ingestionService.PersistAsync(message, cancellationToken);
+        var inserted = await ingestionService.PersistAsync(message, cancellationToken);
+        if (!inserted)
+        {
+            logger.LogInformation(
+                "Skipping aggregation and publish for duplicate event {EventId}",
+                message.EventId);
+            return;
+        }
 
         var snapshot = await aggregationService.AggregateAsync(message, cancellationToken);
 
