@@ -9,11 +9,11 @@ public sealed class IngestedDataIngestionService(
     IRawIngestedEventRepository repository,
     ILogger<IngestedDataIngestionService> logger) : IIngestedDataIngestionService
 {
-    public async Task PersistAsync(IngestedDataMessage message, CancellationToken cancellationToken = default)
+    public async Task<bool> PersistAsync(IngestedDataMessage message, CancellationToken cancellationToken = default)
     {
         var payloadJson = message.Payload.GetRawText();
 
-        await repository.AddAsync(
+        var inserted = await repository.AddAsync(
             message.EventId,
             message.Type,
             message.Name,
@@ -21,10 +21,15 @@ public sealed class IngestedDataIngestionService(
             DateTime.UtcNow,
             cancellationToken);
 
-        logger.LogInformation(
-            "Persisted ingested event {EventId} (Type={Type}, Name={Name})",
-            message.EventId,
-            message.Type,
-            message.Name);
+        if (inserted)
+        {
+            logger.LogInformation(
+                "Persisted ingested event {EventId} (Type={Type}, Name={Name})",
+                message.EventId,
+                message.Type,
+                message.Name);
+        }
+
+        return inserted;
     }
 }

@@ -1,11 +1,13 @@
+using DataStatisticsService.Abstractions.Messaging;
 using DataStatisticsService.Application;
+using DataStatisticsService.Application.Messaging;
 using DataStatisticsService.Data.Configuration;
 using DataStatisticsService.Data;
 using DataStatisticsService.Host.HealthChecks;
 using DataStatisticsService.Data.Persistence;
 using DataStatisticsService.Service;
+using JasperFx.CodeGeneration.Model;
 using Wolverine;
-using Wolverine.ErrorHandling;
 using Wolverine.RabbitMQ;
 
 namespace DataStatisticsService.Host.Extensions;
@@ -26,6 +28,9 @@ public static class WebApplicationBuilderExtensions
 
         builder.Host.UseWolverine(options =>
         {
+            options.ServiceLocationPolicy = ServiceLocationPolicy.AllowedButWarn;
+            options.Discovery.IncludeAssembly(typeof(IngestedDataMessageHandler).Assembly);
+
             options
                 .UseRabbitMq(c =>
                 {
@@ -36,8 +41,11 @@ public static class WebApplicationBuilderExtensions
                 })
                 .AutoProvision();
 
-            options.ListenToRabbitQueue(rabbitMqOptions.QueueName);
-            options.OnException<Exception>().MoveToErrorQueue();
+            options.ListenToRabbitQueue(rabbitMqOptions.QueueName)
+                .DefaultIncomingMessage<IngestedDataMessage>();
+
+            options.PublishMessage<StatisticsUpdatedMessage>()
+                .ToRabbitExchange(rabbitMqOptions.StatisticsUpdatesExchange);
         });
 
         builder.Services

@@ -15,9 +15,14 @@ public static class ServiceCollectionExtensions
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         services.AddDbContext<StatisticsDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("StatisticsDb"));
+            options.UseNpgsql(
+                configuration.GetConnectionString("StatisticsDb"),
+                npgsql => npgsql.MigrationsAssembly(typeof(StatisticsDbContext).Assembly.GetName().Name));
         });
         services.AddScoped<IRawIngestedEventRepository, RawIngestedEventRepository>();
+        services.AddScoped<IReadingSnapshotRepository, ReadingSnapshotRepository>();
+        services.AddScoped<IReadingTimeBucketRepository, ReadingTimeBucketRepository>();
+        services.AddScoped<IReadingQueryRepository, ReadingQueryRepository>();
 
         return services;
     }

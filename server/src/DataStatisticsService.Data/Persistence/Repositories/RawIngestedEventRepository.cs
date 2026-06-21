@@ -10,7 +10,7 @@ public sealed class RawIngestedEventRepository(
     StatisticsDbContext dbContext,
     ILogger<RawIngestedEventRepository> logger) : IRawIngestedEventRepository
 {
-    public async Task AddAsync(
+    public async Task<bool> AddAsync(
         Guid eventId,
         string type,
         string name,
@@ -40,7 +40,11 @@ public sealed class RawIngestedEventRepository(
             logger.LogInformation(
                 "Duplicate ingested event {EventId} ignored (already persisted)",
                 eventId);
+
+            return false;
         }
+
+        return true;
     }
 
     private static bool IsUniqueViolation(DbUpdateException exception)
