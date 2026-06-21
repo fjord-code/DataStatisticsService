@@ -1,0 +1,65 @@
+name: Build, test and Docker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  server:
+    name: .NET build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        working-directory: server
+        run: dotnet restore DataStatisticsService.slnx
+
+      - name: Build
+        working-directory: server
+        run: dotnet build DataStatisticsService.slnx --no-restore --configuration Release
+
+      - name: Test
+        working-directory: server
+        run: dotnet test DataStatisticsService.slnx --no-build --configuration Release --collect:"XPlat Code Coverage"
+
+      - name: Build processor Docker image
+        run: docker build -f server/src/DataStatisticsService.Host/Dockerfile server
+
+      - name: Build gateway Docker image
+        run: docker build -f server/src/DataStatisticsService.Gateway.Host/Dockerfile server
+
+      - name: Build notification Docker image
+        run: docker build -f server/src/DataStatisticsService.Notification.Host/Dockerfile server
+
+  frontend:
+    name: Angular build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Build frontend Docker image
+        run: docker build -f frontend/Dockerfile frontend

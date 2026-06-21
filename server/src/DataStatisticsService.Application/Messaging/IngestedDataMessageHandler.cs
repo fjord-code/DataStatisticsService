@@ -3,7 +3,6 @@ using DataStatisticsService.Abstractions.Messaging;
 using DataStatisticsService.Abstractions.Services;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.Runtime.Handlers;
 
@@ -29,7 +28,12 @@ public sealed class IngestedDataMessageHandler(ILogger<IngestedDataMessageHandle
             .Then.MoveToErrorQueue();
     }
 
-    public async Task Handle(IngestedDataMessage message, IIngestedDataIngestionService ingestionService, CancellationToken cancellationToken)
+    public async Task Handle(
+        IngestedDataMessage message,
+        IIngestedDataIngestionService ingestionService,
+        IStatisticsAggregationService aggregationService,
+        IStatisticsUpdatePublisher updatePublisher,
+        CancellationToken cancellationToken)
     {
         ValidateMessage(message);
 
@@ -38,6 +42,24 @@ public sealed class IngestedDataMessageHandler(ILogger<IngestedDataMessageHandle
             message.EventId);
 
         await ingestionService.PersistAsync(message, cancellationToken);
+
+        var snapshot = await aggregationService.AggregateAsync(message, cancellationToken);
+
+        await updatePublisher.PublishAsync(
+            new StatisticsUpdatedMessage
+            {
+                EventId = snapshot.LastEventId,
+                Type = snapshot.Type,
+                Name = snapshot.Name,
+                NumericValue = snapshot.NumericValue,
+                BoolValue = snapshot.BoolValue,
+                UpdatedAtUtc = snapshot.UpdatedAtUtc
+            },
+            cancellationToken);
+
+        logger.LogInformation(
+            "Published statistics update for event {EventId}",
+            message.EventId);
     }
 
     private static void ValidateMessage(IngestedDataMessage message)

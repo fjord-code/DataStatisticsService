@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="WolverineFx" Version="6.10.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.10.0" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataStatisticsService.Abstractions\DataStatisticsService.Abstractions.csproj" />
+    <ProjectReference Include="..\DataStatisticsService.Data\DataStatisticsService.Data.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -57,6 +57,97 @@ namespace DataStatisticsService.Data.Migrations
 
                     b.ToTable("raw_ingested_events", (string)null);
                 });
+
+            modelBuilder.Entity("DataStatisticsService.Data.Entities.ReadingSnapshot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool?>("BoolValue")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LastEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<double?>("NumericValue")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Type", "Name")
+                        .IsUnique();
+
+                    b.ToTable("reading_snapshots", (string)null);
+                });
+
+            modelBuilder.Entity("DataStatisticsService.Data.Entities.ReadingTimeBucket", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<double?>("AvgNumeric")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("BucketStartUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("FalseCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Granularity")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("SampleCount")
+                        .HasColumnType("integer");
+
+                    b.Property<double?>("SumNumeric")
+                        .HasColumnType("double precision");
+
+                    b.Property<int?>("TrueCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Type", "Name", "BucketStartUtc", "Granularity")
+                        .IsUnique();
+
+                    b.ToTable("reading_time_buckets", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }

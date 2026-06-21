@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DataStatisticsService.Abstractions.Messaging;
+using DataStatisticsService.Abstractions.Queries;
 using DataStatisticsService.Abstractions.Services;
 using DataStatisticsService.Application.Messaging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,15 +12,19 @@ public sealed class IngestedDataMessageHandlerTests
     private readonly IngestedDataMessageHandler _handler = new(NullLogger<IngestedDataMessageHandler>.Instance);
 
     [Fact]
-    public async Task Handle_ValidMessage_CallsPersistAsyncOnce()
+    public async Task Handle_ValidMessage_CallsPersistAggregateAndPublish()
     {
         var ingestionService = new FakeIngestionService();
+        var aggregationService = new FakeAggregationService();
+        var updatePublisher = new FakeUpdatePublisher();
         var message = CreateValidMessage();
 
-        await _handler.Handle(message, ingestionService, CancellationToken.None);
+        await _handler.Handle(message, ingestionService, aggregationService, updatePublisher, CancellationToken.None);
 
         Assert.Equal(1, ingestionService.PersistCallCount);
         Assert.Same(message, ingestionService.LastMessage);
+        Assert.Equal(1, aggregationService.AggregateCallCount);
+        Assert.Equal(1, updatePublisher.PublishCallCount);
     }
 
     [Theory]
@@ -36,6 +41,8 @@ public sealed class IngestedDataMessageHandlerTests
         string _)
     {
         var ingestionService = new FakeIngestionService();
+        var aggregationService = new FakeAggregationService();
+        var updatePublisher = new FakeUpdatePublisher();
         var message = new IngestedDataMessage
         {
             EventId = Guid.Parse(eventId),
@@ -45,16 +52,20 @@ public sealed class IngestedDataMessageHandlerTests
         };
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(message, ingestionService, CancellationToken.None));
+            () => _handler.Handle(message, ingestionService, aggregationService, updatePublisher, CancellationToken.None));
 
         Assert.NotNull(exception.Message);
         Assert.Equal(0, ingestionService.PersistCallCount);
+        Assert.Equal(0, aggregationService.AggregateCallCount);
+        Assert.Equal(0, updatePublisher.PublishCallCount);
     }
 
     [Fact]
     public async Task Handle_UndefinedPayload_ThrowsAndDoesNotPersist()
     {
         var ingestionService = new FakeIngestionService();
+        var aggregationService = new FakeAggregationService();
+        var updatePublisher = new FakeUpdatePublisher();
         var message = new IngestedDataMessage
         {
             EventId = Guid.NewGuid(),
@@ -63,7 +74,7 @@ public sealed class IngestedDataMessageHandlerTests
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(message, ingestionService, CancellationToken.None));
+            () => _handler.Handle(message, ingestionService, aggregationService, updatePublisher, CancellationToken.None));
 
         Assert.Equal(0, ingestionService.PersistCallCount);
     }
@@ -72,6 +83,8 @@ public sealed class IngestedDataMessageHandlerTests
     public async Task Handle_NullPayload_ThrowsAndDoesNotPersist()
     {
         var ingestionService = new FakeIngestionService();
+        var aggregationService = new FakeAggregationService();
+        var updatePublisher = new FakeUpdatePublisher();
         var message = new IngestedDataMessage
         {
             EventId = Guid.NewGuid(),
@@ -81,7 +94,7 @@ public sealed class IngestedDataMessageHandlerTests
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(message, ingestionService, CancellationToken.None));
+            () => _handler.Handle(message, ingestionService, aggregationService, updatePublisher, CancellationToken.None));
 
         Assert.Equal(0, ingestionService.PersistCallCount);
     }
@@ -105,6 +118,37 @@ public sealed class IngestedDataMessageHandlerTests
         {
             PersistCallCount++;
             LastMessage = message;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeAggregationService : IStatisticsAggregationService
+    {
+        public int AggregateCallCount { get; private set; }
+
+        public Task<ReadingSnapshotDto> AggregateAsync(
+            IngestedDataMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            AggregateCallCount++;
+            return Task.FromResult(new ReadingSnapshotDto(
+                message.Type,
+                message.Name,
+                42,
+                null,
+                message.Payload.GetRawText(),
+                message.EventId,
+                DateTime.UtcNow));
+        }
+    }
+
+    private sealed class FakeUpdatePublisher : IStatisticsUpdatePublisher
+    {
+        public int PublishCallCount { get; private set; }
+
+        public Task PublishAsync(StatisticsUpdatedMessage message, CancellationToken cancellationToken = default)
+        {
+            PublishCallCount++;
             return Task.CompletedTask;
         }
     }

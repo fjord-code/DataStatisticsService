@@ -43,6 +43,9 @@ public static class WebApplicationBuilderExtensions
 
             options.ListenToRabbitQueue(rabbitMqOptions.QueueName)
                 .DefaultIncomingMessage<IngestedDataMessage>();
+
+            options.PublishMessage<StatisticsUpdatedMessage>()
+                .ToRabbitExchange(rabbitMqOptions.StatisticsUpdatesExchange);
         });
 
         builder.Services
