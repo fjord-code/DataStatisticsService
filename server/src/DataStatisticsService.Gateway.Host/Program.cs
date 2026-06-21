@@ -1,7 +1,9 @@
 using DataStatisticsService.Gateway.Host.GraphQL;
 using DataStatisticsService.Data;
+using DataStatisticsService.Data.Persistence;
 using DataStatisticsService.Service;
 using HotChocolate.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +29,9 @@ builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
     .AddFiltering()
-    .AddSorting();
+    .AddSorting()
+    .ModifyRequestOptions(o =>
+        o.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 
 var app = builder.Build();
 
@@ -48,6 +52,12 @@ app.UseSerilogRequestLogging();
 app.UseCors("Frontend");
 app.MapControllers();
 app.MapGet("/health/live", () => Results.Ok());
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<StatisticsDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.Run();
 
