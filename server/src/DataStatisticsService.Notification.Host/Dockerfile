@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["src/DataStatisticsService.Notification.Host/DataStatisticsService.Notification.Host.csproj", "src/DataStatisticsService.Notification.Host/"]
 COPY ["src/DataStatisticsService.Data/DataStatisticsService.Data.csproj", "src/DataStatisticsService.Data/"]
+COPY ["src/DataStatisticsService.Service/DataStatisticsService.Service.csproj", "src/DataStatisticsService.Service/"]
 COPY ["src/DataStatisticsService.Abstractions/DataStatisticsService.Abstractions.csproj", "src/DataStatisticsService.Abstractions/"]
 COPY ["src/DataStatisticsService.Shared/DataStatisticsService.Shared.csproj", "src/DataStatisticsService.Shared/"]
 RUN dotnet restore "src/DataStatisticsService.Notification.Host/DataStatisticsService.Notification.Host.csproj"

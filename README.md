@@ -80,6 +80,7 @@ Adjust ports/credentials in `.env` if needed:
 - **No messages consumed**: ensure ingestor stack started first and queue `ingested-data-processing-queue` exists in RabbitMQ management UI (http://localhost:15672)
 - **Failed messages**: check Wolverine error queue in RabbitMQ management UI
 - **Empty dashboard**: confirm gateway can reach PostgreSQL and aggregation tables have data
+- **Build fails with `no space left on device`**: Docker Desktop ran out of disk during image build. Free space with `docker builder prune -af` (and optionally `docker system prune -af`), check usage with `docker system df`, and increase the virtual disk limit in Docker Desktop → Settings → Resources. Rebuild with lower peak disk use: `docker compose build --parallel 1`. The `server/.dockerignore` and `frontend/.dockerignore` files keep build contexts small and help prevent recurrence.
 
 ## Development
 

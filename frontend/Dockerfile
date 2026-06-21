@@ -2,7 +2,9 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
-COPY . .
+COPY angular.json tsconfig*.json ./
+COPY public ./public
+COPY src ./src
 RUN npm run build
 
 FROM nginx:alpine AS final
