@@ -53,7 +53,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.load();
-    void this.signalR.start();
     this.subscription = this.signalR.readingUpdated$.subscribe((update) => {
       const index = this.snapshots.findIndex((s) => s.type === update.type && s.name === update.name);
       if (index >= 0) {
@@ -66,7 +65,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
-    void this.signalR.stop();
   }
 
   private load(): void {
