@@ -63,6 +63,7 @@ services:
       - RabbitMQ__StatisticsUpdatesExchange=${RABBITMQ_STATISTICS_UPDATES_EXCHANGE}
       - RabbitMQ__StatisticsUpdatesQueue=${RABBITMQ_STATISTICS_UPDATES_QUEUE}
       - Cors__Origins__0=http://localhost:${FRONTEND_PORT}
+      - Cors__Origins__1=http://127.0.0.1:${FRONTEND_PORT}
     networks:
       - app-network
     restart: unless-stopped

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { SignalRService } from './services/signalr.service';
 
@@ -14,6 +14,7 @@ describe('AppComponent', () => {
           provide: SignalRService,
           useValue: {
             readingUpdated$: new Subject(),
+            connectionState$: new BehaviorSubject('disconnected'),
             start: () => Promise.resolve(),
             stop: () => Promise.resolve()
           }

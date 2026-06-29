@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SnackbarService } from '../services/snackbar.service';
 
@@ -41,6 +41,7 @@ import { SnackbarService } from '../services/snackbar.service';
 })
 export class SnackbarComponent implements OnInit, OnDestroy {
   private readonly snackbar = inject(SnackbarService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private subscription?: Subscription;
 
   message = '';
@@ -48,6 +49,7 @@ export class SnackbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.snackbar.message$.subscribe((message) => {
       this.message = message;
+      this.cdr.markForCheck();
     });
   }
 
